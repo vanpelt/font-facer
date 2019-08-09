@@ -3,7 +3,6 @@ from flask_cors import CORS
 from flask import Flask, request
 import json
 import base64
-from PIL import Image
 from io import BytesIO
 import pickle as pk
 from fastai.text import *
@@ -11,6 +10,7 @@ from fastai.vision import *
 import torch.nn as nn
 from torchvision import transforms
 import torch
+from PIL import Image
 
 class UpBlock(nn.Module):
     def __init__(self, up_in_c:int,final_div:bool=True, blur:bool=False, leaky:float=None,self_attention:bool=False, **kwargs):
@@ -79,8 +79,9 @@ class VAE(nn.Module):
         
         return torch.sigmoid(self.final_conv(self.decoder(z))), mean, logvar, ls
 
-    
-model, c2i = pk.load(open('model.pk', 'rb'))
+model = VAE()
+model.load_state_dict(pk.load(open('state_dict.pk', 'rb')))
+c2i = pk.load(open('class2index.pk', 'rb'))
 trans = transforms.ToTensor()
 model = model.cpu().eval()
 
@@ -125,24 +126,32 @@ def encode():
 
 
 @app.route("/predict", methods=['POST'])
-def decode():
+def predict():
+    print("YO", Image)
     #image = Image.open(BytesIO(base64.b64decode(request.form["image"])))
     # "ttf": b"data:font/ttf;base64,"+base64.b64encode(ttf)
     fonts = json.loads(request.form["fonts"])
-    print("FONTS", fonts)
     imagesAL = []
     for i,img in enumerate(fonts[0]["images"]):
-        imagesAL.append(Image.open(BytesIO(base64.b64decode(img.split(",")[-1]))), fonts[0]["chars"][i])
+        imagesAL.append([Image.open(BytesIO(base64.b64decode(img.split(",")[-1]))), fonts[0]["chars"][i]])
     imagesBL = []
     for i,img in enumerate(fonts[1]["images"]):
-        imagesB.append(Image.open(BytesIO(base64.b64decode(img.split(",")[-1]))), fonts[1]["chars"][i])
+        imagesBL.append([Image.open(BytesIO(base64.b64decode(img.split(",")[-1]))), fonts[1]["chars"][i]])
         
-    result = font_interpolator(f1_imgs, f2_imgs)
+    result = font_interpolator(imagesAL, imagesBL)
+    images = []
+    for imgs in result:
+        inner = []
+        for img in imgs:
+            pil = Image.fromarray(img.detach().numpy() * 255, mode="L")
+            buffered = BytesIO()
+            pil.save(buffered, format="png")
+            img_str = base64.b64encode(buffered.getvalue())
+            inner.append(b"data:image/png;base64,"+img_str)
+        images.append(inner)
                         
     coef = json.loads(request.form["coefficients"])
-    images = []
-    for i in range(5):
-        images.append(fonts[i % 2]["images"])
+
     return {
         "path": "M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z",
         "images": images
