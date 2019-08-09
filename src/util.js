@@ -48,9 +48,13 @@ export function drawFont(text, face, name, size = 64, padding = 5) {
 
   const images = { name: name, images: [], chars: [] };
   for (var i = 0; i < text.length; i++) {
-    ctx.fillText(text.charAt(i), padding, size - padding);
+    let char = text.charAt(i);
+    ctx.fillText(char, padding, size - padding);
     images["images"].push(canvas.toDataURL("image/png"));
-    images["chars"].push(text.charAt(i));
+    if (char === char.toUpperCase()) {
+      char = "$" + char;
+    }
+    images["chars"].push(char);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
   return images;
