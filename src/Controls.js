@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Slider } from "react-semantic-ui-range";
-import { Grid, Button } from "semantic-ui-react";
+import { Grid, Button, Segment } from "semantic-ui-react";
 import Output from "./Output";
 import { loadFont } from "./util";
 
@@ -28,14 +28,13 @@ export default function Controls(props) {
       );
       const json = await response.json();
       setResults(json);
-      const face = new FontFace("fontc", "url(" + json.ttf + ")");
-      const font = await face.load();
-      document.fonts.add(font);
+      //const face = new FontFace("fontc", "url(" + json.ttf + ")");
+      //const font = await face.load();
+      //document.fonts.add(font);
     } catch (error) {
       console.error(error);
     }
   }
-  console.log("Fonts", props.fonts);
   return (
     <>
       <Grid.Column style={{ minWidth: 200, padding: 20 }}>
@@ -79,14 +78,28 @@ export default function Controls(props) {
         <Slider
           color="grey"
           settings={{
-            min: -1,
-            max: 1,
+            min: 0,
+            max: 4,
             start: 0,
-            step: 0.1,
+            step: 1,
             onChange: value => setInterpolate(value)
           }}
           value={interpolate}
         />
+        <Segment>
+          {results &&
+            results["images"][interpolate] &&
+            results["images"][interpolate].map((url, i) => {
+              return (
+                <img
+                  key={"fontc" + i}
+                  alt={"Font image"}
+                  style={{ maxWidth: 64, maxHeight: 64 }}
+                  src={url}
+                />
+              );
+            })}
+        </Segment>
         <Button style={{ marginTop: 20 }} onClick={() => fetchResults("$A")}>
           Convert
         </Button>
