@@ -118,6 +118,8 @@ def font_interpolator(font1_images, font2_images):
     return res
 
 
+embeddings, f2e, i2f = pk.load(open('emb.pk', 'rb'))
+
 app = Flask(__name__)
 CORS(app)
 @app.route("/encode", methods=['POST'])
@@ -135,14 +137,10 @@ def predict():
     imagesAL = []
     print("HELLOP", fonts)
     for char in fonts[0]["chars"]:
-        print("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png")
-        img = Image.open("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png")
-        img.save("shit.png")
-        imagesAL.append([Image.open("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png"), char])
+        imagesAL.append([Image.open("/project/pyhack/stargan/data/google-fonts-data/normal/SERIF/mate/400/png/"+char+".png"), char])
     imagesBL = []
     for char in fonts[1]["chars"]:
-        print("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png")
-        imagesBL.append([Image.open("data/"+fonts[1]["name"].replace("regular", "400")+"/png/"+char+".png"), char])
+        imagesBL.append([Image.open("/project/pyhack/stargan/data/google-fonts-data/normal/SANS_SERIF/firasans/100/png/"+char+".png"), char])
     
     """
     for i,img in enumerate(fonts[0]["images"]):
