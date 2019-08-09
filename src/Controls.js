@@ -38,48 +38,50 @@ export default function Controls(props) {
   return (
     <>
       <Grid.Column style={{ minWidth: 200, padding: 20 }}>
-        <label>Bold</label>
-        <Slider
-          color="grey"
-          settings={{
-            min: -1,
-            max: 1,
-            start: 0,
-            step: 0.1,
-            onChange: value => setBold(value)
-          }}
-          value={bold}
-        />
-        <label>Italic</label>
-        <Slider
-          color="grey"
-          settings={{
-            min: -1,
-            max: 1,
-            start: 0,
-            step: 0.1,
-            onChange: value => setItalic(value)
-          }}
-          value={italic}
-        />
-        <label>Serif</label>
-        <Slider
-          color="grey"
-          settings={{
-            min: -1,
-            max: 1,
-            start: 0,
-            step: 0.1,
-            onChange: value => setSerif(value)
-          }}
-          value={serif}
-        />
+        <div style={{ display: "none" }}>
+          <label>Bold</label>
+          <Slider
+            color="grey"
+            settings={{
+              min: -1,
+              max: 1,
+              start: 0,
+              step: 0.1,
+              onChange: value => setBold(value)
+            }}
+            value={bold}
+          />
+          <label>Italic</label>
+          <Slider
+            color="grey"
+            settings={{
+              min: -1,
+              max: 1,
+              start: 0,
+              step: 0.1,
+              onChange: value => setItalic(value)
+            }}
+            value={italic}
+          />
+          <label>Serif</label>
+          <Slider
+            color="grey"
+            settings={{
+              min: -1,
+              max: 1,
+              start: 0,
+              step: 0.1,
+              onChange: value => setSerif(value)
+            }}
+            value={serif}
+          />
+        </div>
         <label>Interpolate</label>
         <Slider
           color="grey"
           settings={{
             min: 0,
-            max: 4,
+            max: 8,
             start: 0,
             step: 1,
             onChange: value => setInterpolate(value)

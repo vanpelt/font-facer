@@ -5,8 +5,8 @@ import Controls from "./Controls";
 import { Grid } from "semantic-ui-react";
 
 function App() {
-  const [fontA, setFontA] = useState("opensans/300");
-  const [fontB, setFontB] = useState("gothica1/100");
+  const [fontA, setFontA] = useState("firasans/100");
+  const [fontB, setFontB] = useState("mate/regular");
   const [inputs, setInputs] = useState([]);
   return (
     <div className="App">

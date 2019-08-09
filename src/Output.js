@@ -7,7 +7,7 @@ export default function Output(props) {
       <Grid.Row>
         <h3>Output</h3>
       </Grid.Row>
-      <Grid.Row>{JSON.stringify(props.coefficients)}</Grid.Row>
+      {false && <Grid.Row>{JSON.stringify(props.coefficients)}</Grid.Row>}
       <Grid.Row style={{ fontSize: 14, fontFamily: "fontc" }}>
         <Segment>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
