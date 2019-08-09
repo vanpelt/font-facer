@@ -9,7 +9,7 @@ export function arrayBufferToBase64(buffer) {
 
   return window.btoa(binary);
 }
-export async function loadFont(font, char, format = "png") {
+export async function loadFontImage(font, char, format = "png") {
   /*Loads a font from the public directory returns FormData */
   const png = await fetch(
     process.env.PUBLIC_URL +
@@ -26,4 +26,32 @@ export async function loadFont(font, char, format = "png") {
   const formData = new FormData();
   formData.append("image", arrayBufferToBase64(buffer));
   return formData;
+}
+export function loadFont(url, name) {
+  const promise = new Promise(async (resolve, reject) => {
+    const face = new FontFace(name, "url(" + url + ")");
+    const font = await face.load();
+    document.fonts.add(font);
+    await face.loaded;
+    resolve(face);
+  });
+
+  return promise;
+}
+export function drawFont(text, face, name, size = 64, padding = 5) {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.font = size - padding * 2 + "px " + face;
+  ctx.textBaseline = "bottom";
+
+  const images = { name: name, images: [], chars: [] };
+  for (var i = 0; i < text.length; i++) {
+    ctx.fillText(text.charAt(i), padding, size - padding);
+    images["images"].push(canvas.toDataURL("image/png"));
+    images["chars"].push(text.charAt(i));
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  return images;
 }

@@ -7,6 +7,7 @@ import { Grid } from "semantic-ui-react";
 function App() {
   const [fontA, setFontA] = useState("opensans/300");
   const [fontB, setFontB] = useState("gothica1/100");
+  const [inputs, setInputs] = useState([]);
   return (
     <div className="App">
       <header className="App-header">
@@ -21,9 +22,10 @@ function App() {
               setFontB(value);
             }
           }}
-          fonts={[fontA, fontB]}
+          setInputs={setInputs}
+          selectedFonts={[fontA, fontB]}
         />
-        <Controls fonts={[fontA, fontB]} />
+        <Controls fonts={[fontA, fontB]} inputs={inputs} />
       </Grid>
     </div>
   );

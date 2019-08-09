@@ -1,11 +1,11 @@
 import React, { useCallback, useState, useEffect, Component } from "react";
 import { useDropzone } from "react-dropzone";
-import { Dropdown, Grid, Loader } from "semantic-ui-react";
-import { loadFont } from "./util";
+import { Dropdown, Grid, Loader, Segment } from "semantic-ui-react";
+import { loadFont, drawFont } from "./util";
 import Select, { createFilter } from "react-select";
 import { FixedSizeList as List } from "react-window";
 
-let font = null;
+let selectedFonts = [];
 const height = 35;
 
 function renderOptions(fonts) {
@@ -13,7 +13,8 @@ function renderOptions(fonts) {
     let variant = Object.keys(font.files)[0];
     return {
       value: font.family.toLowerCase().replace(/\s+/, "") + "/" + variant,
-      label: font.family
+      label: font.family,
+      url: font.files[variant]
     };
   });
 }
@@ -45,6 +46,7 @@ export default function Input(props) {
   const [loading, setLoading] = useState(false);
   const [fonts, setFonts] = useState([]);
   const [options, setOptions] = useState([]);
+  const [renderedFonts, setRenderedFonts] = useState([]);
   async function loadLatent(font) {
     setLoading(true);
     const formData = await loadFont(font, "$A");
@@ -79,9 +81,28 @@ export default function Input(props) {
   }
 
   useEffect(() => {
-    if (!loading && font != props.fonts[0]) {
-      font = props.fonts[0];
-      loadLatent(props.fonts[0]);
+    //TODO: we should memoize or something
+    if (
+      !loading &&
+      options.length > 0 &&
+      (selectedFonts[0] !== props.selectedFonts[0] ||
+        selectedFonts[1] !== props.selectedFonts[1])
+    ) {
+      selectedFonts = props.selectedFonts;
+      async function load() {
+        //loadLatent(props.fonts[0]);
+        setLoading(true);
+        const fontaUrl = options.find(o => o.value === selectedFonts[0]).url;
+        const fontbUrl = options.find(o => o.value === selectedFonts[1]).url;
+        await loadFont(fontaUrl, "fonta");
+        await loadFont(fontbUrl, "fontb");
+        const fonta = await drawFont("PyTorch", "fonta", selectedFonts[0]);
+        const fontb = await drawFont("PyTorch", "fontb", selectedFonts[1]);
+        setRenderedFonts([fonta.images, fontb.images]);
+        props.setInputs([fonta, fontb]);
+        setLoading(false);
+      }
+      load();
     }
     if (fonts.length === 0) {
       loadFonts();
@@ -102,8 +123,12 @@ export default function Input(props) {
               isClearable={true}
               components={{ MenuList }}
               options={options}
-              onChange={t => t && setFonts([t.value, fonts[1]])}
+              defaultValue={fonts[0]}
+              onChange={t => t && props.setFont(t.value, "A")}
             />
+            <Segment style={{ fontFamily: "fonta", fontSize: 24 }}>
+              PyTorch
+            </Segment>
           </Grid.Column>
           <Grid.Column>
             <Select
@@ -113,30 +138,42 @@ export default function Input(props) {
               isClearable={true}
               components={{ MenuList }}
               options={options}
-              onChange={t => t && setFonts([fonts[0], t.value])}
+              defaultValue={fonts[1]}
+              onChange={t => t && props.setFont(t.value, "B")}
             />
+            <Segment style={{ fontFamily: "fontb", fontSize: 24 }}>
+              PyTorch
+            </Segment>
           </Grid.Column>
         </Grid>
       </Grid.Row>
       <Grid.Row style={{ paddingTop: 40 }}>
-        <>
-          {props.fonts &&
-            ["$H", "$A", "$C", "$K"].map(letter => (
-              <img
-                key={letter}
-                alt={letter}
-                style={{ maxWidth: 64, maxHeight: 64 }}
-                src={
-                  process.env.PUBLIC_URL +
-                  "/fonts/" +
-                  props.fonts[0] +
-                  "/svg/" +
-                  letter +
-                  ".svg"
-                }
-              />
-            ))}
-        </>
+        <Grid columns="two">
+          <Grid.Column>
+            {renderedFonts.length > 0 &&
+              !loading &&
+              renderedFonts[0].map((url, i) => (
+                <img
+                  key={"fonta" + i}
+                  alt={"Font image"}
+                  style={{ maxWidth: 64, maxHeight: 64 }}
+                  src={url}
+                />
+              ))}
+          </Grid.Column>
+          <Grid.Column>
+            {renderedFonts.length > 0 &&
+              !loading &&
+              renderedFonts[1].map((url, i) => (
+                <img
+                  key={"fontb" + i}
+                  alt={"Font image"}
+                  style={{ maxWidth: 64, maxHeight: 64 }}
+                  src={url}
+                />
+              ))}
+          </Grid.Column>
+        </Grid>
         <div style={{ paddingTop: 100 }}>
           <Loader active={loading} />
         </div>

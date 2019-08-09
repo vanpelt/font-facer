@@ -11,13 +11,12 @@ export default function Controls(props) {
   const [interpolate, setInterpolate] = useState(0);
   const [results, setResults] = useState();
   useEffect(() => {
-    console.log("RESULTS", results);
+    console.log("RESULTS", results, props.inputs);
   });
   async function fetchResults(char) {
     //const formData = await loadFont(props.fonts[0], "$A");
     const formData = new FormData();
-    formData.append("fontA", props.fonts[0]);
-    formData.append("fontB", props.fonts[1]);
+    formData.append("fonts", JSON.stringify(props.inputs));
     formData.append("coefficients", JSON.stringify({ bold, italic, serif }));
     try {
       const response = await fetch(
