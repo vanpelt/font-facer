@@ -36,6 +36,7 @@ export default function Controls(props) {
       console.error(error);
     }
   }
+  console.log("Fonts", props.fonts);
   return (
     <>
       <Grid.Column style={{ minWidth: 200, padding: 20 }}>

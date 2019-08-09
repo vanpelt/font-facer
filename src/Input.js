@@ -1,31 +1,41 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, Component } from "react";
 import { useDropzone } from "react-dropzone";
 import { Dropdown, Grid, Loader } from "semantic-ui-react";
 import { loadFont } from "./util";
+import Select, { createFilter } from "react-select";
+import { FixedSizeList as List } from "react-window";
 
 let font = null;
-const Items = React.memo(({ which, fonts, setFont }) => {
+const height = 35;
+
+function renderOptions(fonts) {
   return fonts.map(font => {
-    return (
-      <Dropdown.Item key={font.family}>
-        <Dropdown text={font.family}>
-          <Dropdown.Menu>
-            {Object.keys(font.files).map(k => (
-              <Dropdown.Item
-                onClick={(e, d) =>
-                  setFont(font.family + "/" + k, which, font.files[k])
-                }
-                key={font.family + k}
-              >
-                {k}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown>
-      </Dropdown.Item>
-    );
+    let variant = Object.keys(font.files)[0];
+    return {
+      value: font.family.toLowerCase().replace(/\s+/, "") + "/" + variant,
+      label: font.family
+    };
   });
-});
+}
+
+class MenuList extends Component {
+  render() {
+    const { options, children, maxHeight, getValue } = this.props;
+    const [value] = getValue();
+    const initialOffset = options.indexOf(value) * height;
+
+    return (
+      <List
+        height={maxHeight}
+        itemCount={children.length}
+        itemSize={height}
+        initialScrollOffset={initialOffset}
+      >
+        {({ index, style }) => <div style={style}>{children[index]}</div>}
+      </List>
+    );
+  }
+}
 
 export default function Input(props) {
   const onDrop = useCallback(acceptedFiles => {
@@ -34,7 +44,7 @@ export default function Input(props) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
   const [loading, setLoading] = useState(false);
   const [fonts, setFonts] = useState([]);
-  const [queries, setQueries] = useState(["", ""]);
+  const [options, setOptions] = useState([]);
   async function loadLatent(font) {
     setLoading(true);
     const formData = await loadFont(font, "$A");
@@ -73,46 +83,38 @@ export default function Input(props) {
       font = props.fonts[0];
       loadLatent(props.fonts[0]);
     }
-    console.log("WHOA", fonts);
     if (fonts.length === 0) {
       loadFonts();
+    } else if (options.length === 0) {
+      setOptions(renderOptions(fonts));
     }
   });
-
   return (
     <Grid.Column style={{ position: "relative" }}>
       <Grid.Row />
       <Grid.Row style={{ paddingTop: 20 }}>
         <Grid columns="two">
           <Grid.Column>
-            <Dropdown
+            <Select
+              filterOption={createFilter({ ignoreAccents: false })}
               placeholder="Font A"
-              search
-              fluid
-              searchQuery={queries[0]}
-              onSearchChange={(e, { searchQuery }) =>
-                setQueries([searchQuery, queries[1]])
-              }
-            >
-              <Dropdown.Menu>
-                <Items which="A" fonts={fonts} setFont={props.setFont} />
-              </Dropdown.Menu>
-            </Dropdown>
+              isSearchable={true}
+              isClearable={true}
+              components={{ MenuList }}
+              options={options}
+              onChange={t => t && setFonts([t.value, fonts[1]])}
+            />
           </Grid.Column>
           <Grid.Column>
-            <Dropdown
+            <Select
+              filterOption={createFilter({ ignoreAccents: false })}
               placeholder="Font B"
-              search
-              fluid
-              searchQuery={queries[1]}
-              onSearchChange={(e, { searchQuery }) =>
-                setQueries([queries[0], searchQuery])
-              }
-            >
-              <Dropdown.Menu>
-                <Items which="B" fonts={fonts} setFont={props.setFont} />
-              </Dropdown.Menu>
-            </Dropdown>
+              isSearchable={true}
+              isClearable={true}
+              components={{ MenuList }}
+              options={options}
+              onChange={t => t && setFonts([fonts[0], t.value])}
+            />
           </Grid.Column>
         </Grid>
       </Grid.Row>
