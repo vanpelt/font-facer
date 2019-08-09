@@ -11,6 +11,7 @@ import torch.nn as nn
 from torchvision import transforms
 import torch
 from PIL import Image
+import PIL.ImageOps
 
 class UpBlock(nn.Module):
     def __init__(self, up_in_c:int,final_div:bool=True, blur:bool=False, leaky:float=None,self_attention:bool=False, **kwargs):
@@ -132,23 +133,37 @@ def predict():
     # "ttf": b"data:font/ttf;base64,"+base64.b64encode(ttf)
     fonts = json.loads(request.form["fonts"])
     imagesAL = []
+    print("HELLOP", fonts)
+    for char in fonts[0]["chars"]:
+        print("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png")
+        imagesAL.append([Image.open("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png"), char])
+    imagesBL = []
+    for char in fonts[1]["chars"]:
+        print("data/"+fonts[0]["name"].replace("regular", "400")+"/png/"+char+".png")
+        imagesBL.append([Image.open("data/"+fonts[1]["name"].replace("regular", "400")+"/png/"+char+".png"), char])
+    
+    """
     for i,img in enumerate(fonts[0]["images"]):
         imagesAL.append([Image.open(BytesIO(base64.b64decode(img.split(",")[-1]))), fonts[0]["chars"][i]])
     imagesBL = []
     for i,img in enumerate(fonts[1]["images"]):
         imagesBL.append([Image.open(BytesIO(base64.b64decode(img.split(",")[-1]))), fonts[1]["chars"][i]])
-        
+    """   
+    #import matplotlib.pyplot as plt
+    #plt.imshow(imagesAL[0][0])
     result = font_interpolator(imagesAL, imagesBL)
+    
     images = []
-    for imgs in result:
+    for i, imgs in enumerate(result):
         inner = []
-        for img in imgs:
-            pil = Image.fromarray(img.detach().numpy() * 255, mode="L")
+        for j, img in enumerate(imgs):
+            pil = transforms.ToPILImage()(img).convert("L")
             buffered = BytesIO()
             pil.save(buffered, format="png")
             img_str = base64.b64encode(buffered.getvalue())
             inner.append(b"data:image/png;base64,"+img_str)
         images.append(inner)
+    images = list(map(list, zip(*images)))
                         
     coef = json.loads(request.form["coefficients"])
 
